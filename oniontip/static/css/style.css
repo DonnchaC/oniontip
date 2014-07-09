@@ -1,0 +1,102 @@
+#form input {
+  text-align: center;
+}
+
+input#top {
+  max-width: 120px;
+}
+
+#torproj-donate {
+  max-width: 190px;
+}
+
+.loading {
+  width: 24px;
+  margin: 0 auto;
+  padding-top: 50px;
+  padding-bottom: 100px;
+}
+
+#result_table td, #result_table th {
+  text-align: center;
+}
+
+#result_table tfoot {
+    border-top: 2px solid #DDDDDD;
+}
+
+body {
+  padding-top: 60px;
+  padding-bottom: 40px;
+}
+td#extra_table_title {
+  font-weight: bold;
+}
+
+th.spinner-small {
+    background-repeat: no-repeat;
+    background-position: right center;
+    background-size: 15px 15px;
+    padding-right: 20px;
+}
+
+#page-title {
+  margin-bottom: 30px;
+}
+
+#flag-options {
+  margin: 10px;
+}
+
+#inline-option-btn {
+  margin-left: 10px;
+}
+
+.panel-heading a {
+  display: block;
+}
+
+.panel-heading a:after {
+    font-family: 'Glyphicons Halflings';
+    content: "\e114";    
+    float: right; 
+    color: grey; 
+}
+.panel-heading a.collapsed:after {
+    content: "\e080";
+}
+
+
+.btn-xl {
+    padding: 18px 28px;
+    font-size: 22px;
+    border-radius: 8px;
+}
+
+#checktx-btn {
+  margin-top: 10px;
+}
+
+
+/* Sticky footer styles
+-------------------------------------------------- */
+html {
+  position: relative;
+  min-height: 100%;
+}
+body {
+  /* Margin bottom by footer height */
+  margin-bottom: 60px;
+}
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  /* Set the fixed height of the footer here */
+  height: 60px;
+  background-color: #f5f5f5;
+}
+
+.container .text-muted {
+  margin: 20px 0;
+}

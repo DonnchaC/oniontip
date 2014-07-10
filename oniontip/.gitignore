@@ -56,7 +56,7 @@ target/
 *.db
 
 # Router info db
-*.json
+details.json
 
 # Config files
 config_testing.py

@@ -113,6 +113,7 @@ oniontipModule.controller('OnionTipCtrl',function OnionTipCtrl($scope,$http,$loc
         else {
           $scope.state = "result_empty"
         }
+        $("#payment_errors .alert").remove(); // Remove previously shown alerts 
         $("#paymentModal").modal("show");
       })
   };

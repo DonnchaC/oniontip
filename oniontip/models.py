@@ -27,3 +27,16 @@ class ForwardAddress(db.Model):
 
     def __unicode__(self):
         return self.address
+
+class DataStore(db.Model):
+    """Simple Key/value data store instead of using flat file"""
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String(80), unique=True)
+    value = db.Column(db.String(300))
+
+    def __init__(self, key=None, value=None):
+        self.key = key
+        self.value = value
+
+    def __unicode__(self):
+        return (self.key, self.value)

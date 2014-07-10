@@ -2,7 +2,7 @@ from flask import request, jsonify, render_template, Response, send_file
 from flask.ext.sqlalchemy import SQLAlchemy
 
 from oniontip import app, db
-from models import ForwardAddress
+from models import ForwardAddress, DataStore
 import util
 
 import os
@@ -20,7 +20,8 @@ MIN_OUTPUT = 5460       # Bitcoin dust limit
 
 @app.route('/')
 def index():
-    return app.open_resource("templates/index.html").read().replace('<!--%script_root%-->',request.script_root)
+    # Add total donated to the template
+    return app.open_resource("templates/index.html").read().replace('<!--%script_root%-->',request.script_root).replace('<!--total_donated-->', total_donated())
 
 @app.route('/result.json', methods=['GET'])
 def json_result():
@@ -55,6 +56,8 @@ def payment_info():
         donation_request = ForwardAddress(outputs=outputs, previous_n=previous_id)
         db.session.add(donation_request)
         db.session.commit()
+
+        app.logger.info('Forwarding adddress {} paying to {} relays created.'.format(donation_request.address, len(outputs)))
         return Response(json.dumps({
                 'status': 'success',
                 'data': {
@@ -96,6 +99,7 @@ def check_and_send(address):
     try:
         address_history = bitcoin.history(address)
     except Exception, err:
+        app.logger.error('Error retrieving address history for {} from blockchain.info: {}'.format(address, str(err)))
         return {'status': 'error',
                 'message': '<strong>Blockchain.info Error:</strong> {}'.format(str(err))
                 }
@@ -103,6 +107,7 @@ def check_and_send(address):
     address_unspent = [output for output in address_history if not 'spend' in output]
 
     if address_history and not address_unspent:
+        app.logger.info('Could not find any unspent outputs for address {}, outputs already spent'.format(address))
         return {'status': 'fail',
                 'data': { 
                     'message': 'There are no bitcoins remaining at this address. Have they been forwarded already? <a target="_blank" href="https://blockchain.info/address/'+address+'">'+address[0:10]+'..</a>',
@@ -110,6 +115,7 @@ def check_and_send(address):
                 }}
 
     elif not address_unspent:
+        app.logger.info('Could not find any unspent outputs for address {}'.format(address))
         return {'status': 'fail',
                 'data': {
                     'message': 'No transaction has been received yet.',
@@ -122,9 +128,10 @@ def check_and_send(address):
         unspent_value = sum(output.get('value') for output in address_unspent)
         spendable_value = unspent_value - estimate_fee 
         if spendable_value <= 0:
+            app.logger.error('Not enough unspent bitcoin at address {} to pay tx fee of {} satoshi. '.format(address, estimate_fee))
             return {'status': 'fail',
                     'data': {
-                        'message': 'There is not enough unspent bitcoin at this address to pay the transaction fee of {estimate_fee} satoshis.'.format(),
+                        'message': 'There is not enough unspent bitcoin at this address to pay the transaction fee of {} satoshis.'.format(estimate_fee),
                         'code': 500
                     }}
         
@@ -146,9 +153,10 @@ def check_and_send(address):
                 out['value'] += int(math.floor(new_ratio * discarded_value))
 
         if not outs:
+            app.logger.error('Could not find addresses suitable to spend to from {}. Outputs may be too small.'.format(address))
             return {'status': 'fail',
                     'data': {
-                        'message': 'There are no addresses to which the donation can be forwarded to successfully.',
+                        'message': 'There are no addresses to where the donation can be successfully forwarded. The value of the donation may be too low, try sending a little more.',
                         'code': 500
                     }}
 
@@ -158,11 +166,21 @@ def check_and_send(address):
 
         try:
             push_result = bitcoin.pushtx(tx)
+            tx_total = sum(out.get('value') for out in outs)
 
             # This address has been successfully spent from and doesn't need to be checked again.
             address_info.spent = True
+
+            # Keep a total of all bitcoins tipped
+            total_donated = DataStore.query.filter_by(key='total_donated').first()
+            if total_donated:
+                total_donated.value = int(int(total_donated.value) + tx_total)
+            else:
+                total_donated = DataStore('total_donated', tx_total)
+                db.session.add(total_donated)
             db.session.commit()
 
+            app.logger.info('Transaction successfully sent {} satoshi from {} in tx {}.'.format(tx_total, address, tx_hash))
             return {'status': 'success',
                     'data': {
                         'message': '<strong>Success!</strong> Your transaction was received and forwarded to your selected relays. '
@@ -171,15 +189,18 @@ def check_and_send(address):
                     }}
         except Exception, err:
             if err:
+                app.logger.error('Error from blockchain.info when sending tx from address {}: {}.'.format(address, str(err)))
                 return {'status': 'error',
                         'message': '<strong>Blockchain.info Error:</strong> {}.'.format(err)
                         }
             else:
+                app.logger.error('Unknown error when pushing forwarding tx to blockchain.info for addresss {}'.format(address))
                 return {'status': 'error',
                         'message': 'There was an unknown error when trying to push the forwarding transaction to the blockchain.'
                         }
 
     else:
+        app.logger.error('Could not find keys for addresss {} in the database'.format(address))
         return {'status': 'fail',
                 'data': {
                     'message': 'Could not find the keys for this address in the database.',
@@ -201,14 +222,15 @@ def find_unsent_payments():
         if (datetime.datetime.utcnow() - unspent.created) < datetime.timedelta(hours=2):
             response = check_and_send(unspent.address)
             if response.get('status') == 'success':
+                app.logger.info('Transaction successfully sent from CLI from {} in tx {}.'.format(address, tx_hash))
                 successful_txs.append({
                     'address': unspent.address,
                     'tx_hash': response['data']['tx_hash']}
                     )
             elif response.get('status') == 'fail':
-                print response['data']['message']
+                print 'CLI Fail: '+response['data']['message']
             elif response.get('status') == 'error':
-                print response['message']
+                print 'CLI Errror: '+response['message']
             else:
                 print 'An unknown error occured in the application.'
         else:
@@ -228,6 +250,20 @@ def forward_from_address(address):
     if response.get('status') == 'success':
         return Response(json.dumps(response), mimetype='application/json')
     elif response.get('status') == 'fail' or response.get('status') == 'error':
-        return Response(json.dumps(response), mimetype='application/json'), response['data'].get('code', 500)
+        if response.get('data'):
+            response_code = response.get('data').get('code', 500)
+        else:
+            response_code = 500
+        return Response(json.dumps(response), mimetype='application/json'), response_code
     else:
         return Response(json.dumps({'message': 'An unknown error occured in the application.'}), mimetype='application/json'), 500
+
+def total_donated():
+    total_donated = DataStore.query.filter_by(key='total_donated').first()
+    if total_donated:
+        if int(total_donated.value) >= 100000000: # More than 1 BTC
+            return "%.2f BTC" % (float(total_donated.value) / 100000000)
+        else:
+            return "%.2f mBTC" % (float(total_donated.value) / 100000)
+    else:
+        return '0 mBTC'

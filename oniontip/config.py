@@ -13,3 +13,12 @@ LOGGER_NAME = "%s_log" % project_name
 
 # BITCOIN ADDRESS SEED - MUST BE SET TO A RANDOM VALUE
 BITCOIN_KEY_SEED = os.environ.get('BITCOIN_KEY_SEED')
+
+# MAIL SERVER SETTINGS
+MAIL_SERVER = 'localhost'
+MAIL_PORT = 25
+MAIL_USERNAME = None
+MAIL_PASSWORD = None
+
+# administrator email list
+ADMINS = ['']

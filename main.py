@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from oniontip import app, db
 from optparse import OptionParser, OptionGroup
 import oniontip.util

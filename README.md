@@ -10,7 +10,7 @@ This project is a rough implementation of the [Flattor](https://lists.torproject
 Bitcoin addresses are generated from a secret master seed. This secure random seed should be set in the 'BITCOIN_KEY_SEED' enviroment variable before running the application. Be sure to keep a copy of the key stored securely or funds may be lost.
 
     $ export BITCOIN_KEY_SEED=`openssl rand 16 -hex`
-    $ python manage.py
+    $ python main.py
 
 The application retrieves updated lists of router bandwidth data and server descriptors from the onionoo service and the directory authorities respectively. The following is an example set of cron jobs to keep the router list and bitcoin payouts up to date.
 

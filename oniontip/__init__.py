@@ -9,11 +9,11 @@ db = SQLAlchemy(app)
 
 if not app.debug:
     import logging
-    from logging.handlers import SMTPHandler
+    from handlers import TlsSMTPHandler
     credentials = None
     if app.config['MAIL_USERNAME'] or app.config['MAIL_PASSWORD']:
         credentials = (app.config['MAIL_USERNAME'], app.config['MAIL_PASSWORD'])
-    mail_handler = SMTPHandler(
+    mail_handler = TlsSMTPHandler(
         (app.config['MAIL_SERVER'], app.config['MAIL_PORT']),
         'no-reply@' + app.config['MAIL_SERVER'],app.config['ADMINS'],
         'OnionTip Failure', credentials

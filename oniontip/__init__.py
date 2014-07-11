@@ -15,7 +15,7 @@ if not app.debug:
         credentials = (app.config['MAIL_USERNAME'], app.config['MAIL_PASSWORD'])
     mail_handler = TlsSMTPHandler(
         (app.config['MAIL_SERVER'], app.config['MAIL_PORT']),
-        'no-reply@' + app.config['MAIL_SERVER'],app.config['ADMINS'],
+        app.config['MAIL_EMAIL'] ,app.config['ADMINS'],
         'OnionTip Failure', credentials
     )
     mail_handler.setLevel(logging.ERROR)

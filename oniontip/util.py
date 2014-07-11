@@ -460,6 +460,9 @@ def check_and_update_bitcoin_fields():
             if extract_bitcoin_address(relay.get('contact')):
                 relay['bitcoin_address'] = extract_bitcoin_address(relay.get('contact'))
 
+    # Remove any relays with weight_fraction of -1.0 as they can't be used to determine donation share
+    data['relays'][:] = [relay for relay in data['relays'] if not relay['consensus_weight_fraction'] < 0]
+
     # Write parsed list to file
     with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'details.json'), 'w') as details_file:
         json.dump(data, details_file)

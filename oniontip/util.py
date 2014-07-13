@@ -202,19 +202,6 @@ class InverseFilter(BaseFilter):
                 inverse_relays.append(relay)
         return inverse_relays
 
-class BitcoinFilter(BaseFilter):
-    ''' Select relays from which a bitcoin address has been extracted''' 
-    class Relay(object):
-        def __init__(self, relay):
-            self.relay = relay
-
-    def load(self, all_relays):
-        matching_relays = []
-        for relay in all_relays:
-            if 'bitcoin_address' in relay:
-                matching_relays.append(relay)
-        return matching_relays
-
 class RelayStats(object):
     def __init__(self, options, custom_datafile="details.json"):
         self._data = None
@@ -244,8 +231,6 @@ class RelayStats(object):
 
     def _create_filters(self, options):
         filters = []
-        # Filter for relays with Bitcoin address
-        filters.append(BitcoinFilter())
         if options.country:
             filters.append(CountryFilter(options.country))
         if options.exits_only:

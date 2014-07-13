@@ -19,8 +19,8 @@ if '__main__' == __name__:
     (options, args) = parser.parse_args()
 
     if options.download:
-        oniontip.util.download_details_file()
-        oniontip.util.check_and_update_bitcoin_fields()
+        relay_data = oniontip.util.download_details_file()
+        oniontip.util.check_and_update_bitcoin_fields(relay_data)
         print "Downloaded details.json.  Re-run without --download option."
         exit()
 

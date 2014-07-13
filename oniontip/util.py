@@ -425,18 +425,15 @@ def determine_relays(options):
 
 def download_details_file():
     url = urllib.urlopen('https://onionoo.torproject.org/details?type=relay')
-    details_file = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'details.json'), 'w')
-    details_file.write(url.read())
-    url.close()
-    details_file.close()
+    return url.read()
 
-def check_and_update_bitcoin_fields():
+def check_and_update_bitcoin_fields(relay_details):
     """
     Load full descriptors and parse bitcoin address from X-bitcoin and contact fields then update
     the details.json file with the bitcoin address as a bitcoin_address field. The X-bitcoin field
     takes precedence over the contact field if both both contain bitcoin addresses.
     """
-    data = json.load(file(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'details.json')))
+    data = json.loads(relay_details)
 
     downloader = DescriptorDownloader()
     extracted_addresses = {}
@@ -460,8 +457,9 @@ def check_and_update_bitcoin_fields():
             if extract_bitcoin_address(relay.get('contact')):
                 relay['bitcoin_address'] = extract_bitcoin_address(relay.get('contact'))
 
-    # Remove any relays with weight_fraction of -1.0 as they can't be used to determine donation share
-    data['relays'][:] = [relay for relay in data['relays'] if not relay['consensus_weight_fraction'] < 0]
+    # Remove any relays without a bitcoin address or with weight_fraction of -1.0 as they can't be used
+    # to determine donation share
+    data['relays'][:] = [relay for relay in data['relays'] if (relay.get('bitcoin_address') and not (relay['consensus_weight_fraction'] < 0))]
 
     # Write parsed list to file
     with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'details.json'), 'w') as details_file:

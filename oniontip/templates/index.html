@@ -50,6 +50,13 @@
                   <input class="form-control" id="torproj" name="torproj" placeholder="25% to Tor Project" value="25" ng-model="query.torproj" type="number">
                   <span class="input-group-addon">%</span>
                 </div>
+              </div>
+              <div id="exit-bonus" class="form-group">
+                <label class="control-label sr-only" for="top">Donate greater share to exit nodes</label>
+                <div class="input-group">
+                  <input class="form-control" id="exitbonus" name="exitbonus" placeholder="Exit Share: 1.5" value="1.5" ng-model="query.exitbonus" type="number">
+                  <span class="input-group-addon">x</span>
+                </div>
               </div>-->
               <button id="inline-option-btn" class="btn btn-primary" ng-click="request()">Update</button>
             </fieldset>

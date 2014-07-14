@@ -2,12 +2,18 @@
   text-align: center;
 }
 
-input#top {
-  max-width: 120px;
-}
+@media(min-width:768px){
+  input#top {
+    max-width: 120px;
+  }
 
-#torproj-donate {
-  max-width: 190px;
+  #torproj-donate {
+    max-width: 190px;
+  }
+
+  input#exitbonus {
+    max-width: 125px;
+  }
 }
 
 .loading {
@@ -93,10 +99,15 @@ body {
   bottom: 0;
   width: 100%;
   /* Set the fixed height of the footer here */
-  height: 60px;
+  min-height: 60px;
+  max-height: 90px;
   background-color: #f5f5f5;
 }
 
-.container .text-muted {
+.footer ul {
   margin: 20px 0;
+}
+
+.footer li {
+  line-height: 2;
 }

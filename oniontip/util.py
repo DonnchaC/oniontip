@@ -178,6 +178,15 @@ class GuardFilter(BaseFilter):
     def accept(self, relay):
         return relay.get('guard_probability', -1) > 0.0
 
+class ValidWeightFilter(BaseFilter):
+    def accept(self, relay):
+        if (relay.get('consensus_weight_fraction', -1) >= 0.0
+          and relay.get('guard_probability', -1) >= 0.0
+          and relay.get('exit_probability', -1) >= 0.0):
+            return True
+        else:
+            return False
+
 class InverseFilter(BaseFilter):
     def __init__(self, orig_filter):
         self.orig_filter = orig_filter
@@ -219,6 +228,7 @@ class RelayStats(object):
 
     def _create_filters(self, options):
         filters = []
+        filters.append(ValidWeightFilter())
         if options.country:
             filters.append(CountryFilter(options.country))
         if options.exits_only:
@@ -432,7 +442,7 @@ def check_and_update_bitcoin_fields(relay_details):
 
     # Remove any relays without a bitcoin address or with weight_fraction of -1.0 as they can't be used
     # to determine donation share
-    data['relays'][:] = [relay for relay in data['relays'] if (relay.get('bitcoin_address') and not (relay['consensus_weight_fraction'] < 0))]
+    data['relays'][:] = [relay for relay in data['relays'] if (relay.get('bitcoin_address'))]
 
     # Write parsed list to file
     with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'details.json'), 'w') as details_file:

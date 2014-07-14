@@ -150,5 +150,7 @@ oniontipModule.controller('OnionTipCtrl',function OnionTipCtrl($scope,$http,$loc
     allowClear: true,
     width: "element",
   }
-
+  
+// Load and display on relays on first load
+$scope.request();
 })

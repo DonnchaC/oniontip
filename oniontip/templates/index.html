@@ -21,7 +21,8 @@
       <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
     </head><body>
-    <div class="container" ng-controller="OnionTipCtrl">
+    <div ng-controller="OnionTipCtrl">
+    <div class="container">
       <h1 id="page-title" class="text-center">OnionTip</h1>
       <p class="lead text-center">Donate to volunteers who are running Tor relays which support a powerful tool that helps you stay anonymous online. You can also support the network by running a relay as part of <a href="https://www.eff.org/torchallenge/">EFF's Tor Challenge.</a></p>
       <div class="panel panel-default">
@@ -41,7 +42,7 @@
               </div>
               <div class="form-group">
                 <label class="control-label sr-only" for="top">Limit Results</label>
-                <input class="form-control" id="top" name="top" placeholder="Show Top: 5" value="5" ng-model="query.top" type="number">
+                <input class="form-control" id="top" name="top" placeholder="Show Top: All" value="-1" ng-model="query.top" type="number">
               </div>
               <!--<div id="torproj-donate" class="form-group">
                 <label class="control-label sr-only" for="top">Donate % to Tor Project</label>
@@ -170,7 +171,7 @@
     </div>
   </div>
 
-  <div class="footer" ng-controller="OnionTipCtrl">
+  <div class="footer">
     <div class="container text-center">
       <p class="text-muted">
         <ul class="list-inline">
@@ -185,6 +186,7 @@
     </div>
   </div>
   <!-- /container -->
+  </div>
 
   <script src="static/js/jquery-1.8.0.min.js"></script>
   <script src="static/js/bootstrap.min.js"></script>

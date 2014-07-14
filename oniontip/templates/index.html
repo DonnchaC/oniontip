@@ -60,6 +60,23 @@
       <div class="panel panel-default">
         <div class="panel-heading">
           <h2 class="panel-title">
+            <a class="collapsed" data-toggle="collapse" href="#adding-relay">How do I get my Tor relay listed?</a>
+          </h2>
+        </div>
+        <div id="adding-relay" class="panel-collapse collapse">
+          <div class="panel-body text-center">
+            <div class="row"><p class="col-md-10 col-md-offset-1">OnionTip runs in an open manner and retrieves all its data from the network consensus data published in the Tor network. To get your running relay included, it must have a valid bitcoin address listed in its contact information. The contact information is listed in the Tor config file which will typically be at <code>/etc/tor/torrc</code> on GNU/Linux systems. Your ContactInfo line should include a bitcoin address as in the following example.</p></div>
+            <div class="row">
+              <pre class="col-md-10 col-md-offset-1">ContactInfo admin@oniontip.com - 1MiJ46CgV5pJzJy3aHvnwCvvpSN45q3Xva</pre>
+            </div>
+            <div class="row"><p class="col-md-10 col-md-offset-1">Once you have made the required modification you will need to reload or restart your relay (<code>service tor reload</code>). After a couple of hours you should see it included in the list below.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h2 class="panel-title">
             <a class="collapsed" data-toggle="collapse" href="#routerlisting">Where will your money go?</a>
           </h2>
         </div>
@@ -90,7 +107,7 @@
                   <th sortable="ajax_sort" sort_by="exit" invert="false" icon="static/img/ajax-loader.gif" class="spinner-small">Exit</th>
                   <th sortable="ajax_sort" sort_by="guard" invert="false" icon="static/img/ajax-loader.gif" class="spinner-small">Guard</th>
                   <th sortable="ajax_sort" sort_by="cc" invert="false" icon="static/img/ajax-loader.gif" class="spinner-small">Country</th>
-                  <th sortable="ajax_sort" ui-jq="tooltip" sort_by="bitcoin_address" invert="false" icon="static/img/ajax-loader.gif" class="spinner-small" title="Bitcoin address retrieved from the contact or X-bitcoin field of the router descriptor">Bitcoin Address</th>
+                  <th sortable="ajax_sort" ui-jq="tooltip" sort_by="bitcoin_address" invert="false" icon="static/img/ajax-loader.gif" class="spinner-small" title="Bitcoin address retrieved from the ContactInfo or X-bitcoin field of the relay descriptor">Bitcoin Address</th>
                 </tr>
               </thead>
               <tfoot>

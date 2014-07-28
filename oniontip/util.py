@@ -178,6 +178,10 @@ class GuardFilter(BaseFilter):
     def accept(self, relay):
         return relay.get('guard_probability', -1) > 0.0
 
+class RunningFilter(BaseFilter):
+    def accept(self, relay):
+        return relay.get('running', False)
+
 class ValidWeightFilter(BaseFilter):
     def accept(self, relay):
         if (relay.get('consensus_weight_fraction', -1) >= 0.0
@@ -228,6 +232,7 @@ class RelayStats(object):
 
     def _create_filters(self, options):
         filters = []
+        filters.append(RunningFilter())
         filters.append(ValidWeightFilter())
         if options.country:
             filters.append(CountryFilter(options.country))

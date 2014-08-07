@@ -1,4 +1,6 @@
-Flask==0.10.1
+#Requirements
+
+```Flask==0.10.1
 Flask-SQLAlchemy==1.0
 Jinja2==2.7.3
 MarkupSafe==0.23
@@ -13,3 +15,4 @@ qrcode==5.0.1
 six==1.7.3
 stem==1.2.2
 wsgiref==0.1.2
+```

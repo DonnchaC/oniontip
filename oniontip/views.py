@@ -222,7 +222,7 @@ def find_unsent_payments():
         if (datetime.datetime.utcnow() - unspent.created) < datetime.timedelta(hours=2):
             response = check_and_send(unspent.address)
             if response.get('status') == 'success':
-                app.logger.info('Transaction successfully sent from CLI from {} in tx {}.'.format(address, tx_hash))
+                app.logger.info('Transaction successfully sent from CLI from {} in tx {}.'.format(unspent.address, tx_hash))
                 successful_txs.append({
                     'address': unspent.address,
                     'tx_hash': response['data']['tx_hash']}

@@ -142,8 +142,7 @@ class ResultEncoder(json.JSONEncoder):
     return json.JSONEncoder.default(self,obj)
 
 def extract_bitcoin_address(field):
-    bitcoin_match = re.search(r"[13][a-km-zA-HJ-NP-Z0-9]{26,33}", field)
-    if bitcoin_match:
+    for bitcoin_match in re.finditer(r"[13][a-km-zA-HJ-NP-Z0-9]{26,33}", field):
         bitcoin_address = bitcoin_match.group(0)
         if bitcoinaddress.validate(bitcoin_address):
             return bitcoin_address

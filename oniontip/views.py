@@ -124,19 +124,18 @@ def check_and_send(address):
 
     address_unspent = [output for output in address_history if not 'spend' in output]
 
+    if not address_history:
+        return {'status': 'fail',
+                'data': {
+                    'message': 'No transaction has been received yet for {}.'.format(address),
+                    'code': 404
+                }}
+
     if address_history and not address_unspent:
         app.logger.info('Could not find any unspent outputs for address {}, outputs already spent'.format(address))
         return {'status': 'fail',
                 'data': { 
                     'message': 'There are no bitcoins remaining at this address. Have they been forwarded already? <a target="_blank" href="https://blockchain.info/address/'+address+'">'+address[0:10]+'..</a>',
-                    'code': 404
-                }}
-
-    elif not address_unspent:
-        app.logger.info('Could not find any unspent outputs for address {}'.format(address))
-        return {'status': 'fail',
-                'data': {
-                    'message': 'No transaction has been received yet.',
                     'code': 404
                 }}
 
@@ -146,7 +145,7 @@ def check_and_send(address):
         unspent_value = sum(output.get('value') for output in address_unspent)
         spendable_value = unspent_value - estimate_fee 
         if spendable_value <= 0:
-            app.logger.error('Not enough unspent bitcoin at address {} to pay tx fee of {} satoshi. '.format(address, estimate_fee))
+            app.logger.warn('Not enough unspent bitcoin at address {} to pay tx fee of {} satoshi. '.format(address, estimate_fee))
             return {'status': 'fail',
                     'data': {
                         'message': 'There is not enough unspent bitcoin at this address to pay the transaction fee of {} satoshis.'.format(estimate_fee),
@@ -183,7 +182,10 @@ def check_and_send(address):
         tx_hash = bitcoin.transaction.txhash(tx)
 
         try:
-            push_result = bitcoin.blockr_pushtx(tx)
+            try:
+                push_result = bitcoin.pushtx(tx)
+            except:
+                push_result = bitcoin.blockr_pushtx(tx)
             tx_total = sum(out.get('value') for out in outs)
 
             # This address has been successfully spent from, update tx info and don't check it again.
@@ -242,13 +244,13 @@ def find_unsent_payments(check_all=False):
         if ((datetime.datetime.utcnow() - unspent.created) < datetime.timedelta(hours=3)) or check_all:
             response = check_and_send(unspent.address)
             if response.get('status') == 'success':
-                app.logger.info('Transaction successfully sent from CLI from {} in tx {}.'.format(unspent.address, tx_hash))
+                app.logger.info('Transaction successfully sent from CLI from {} in tx {}.'.format(unspent.address, response['data']['tx_hash']))
                 successful_txs.append({
                     'address': unspent.address,
                     'tx_hash': response['data']['tx_hash']}
                     )
             elif response.get('status') == 'fail':
-                print 'CLI Fail: {}'.format(response['data']['message'])
+                app.logger.warn('CLI Fail: {}'.format(response['data']['message']))
             elif response.get('status') == 'error':
                 app.logger.error('CLI Errror: {}'.format(response['message']))
             else:

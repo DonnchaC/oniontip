@@ -1,0 +1,43 @@
+{% extends "layout.html" %}
+{% block body %}
+      <div class="panel panel-default">
+        <div id="transactionlisting" class="panel-collapse">
+          <div class="panel-body text-center table-responsive">
+            <div class="row"><p class="col-md-10 col-md-offset-1">All donations made via OnionTip are listed below. You can confirm this yourself on the blockchain with <a href="https://github.com/DonnchaC/oniontip/blob/master/scripts/payment_check.py">a simple script</a>. Join in now by <a href="/">making a donation!</a></p></div>
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th title="Time of Donation">Time</th>
+                  <th title="Address for Donation">Bitcoin Address</th>
+                  <th title="Transaction Hash">Transaction Hash</th>
+                  <th title="Number of relays selected to receive a portion of the donation"># Relays</th>
+                  <th title="Total Value of the Donation">Donation Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for transaction in transactions %}
+                  <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ transaction.time }}</td>
+                    <td data-deterministic-index="{{ transaction.deterministic_index }}"><a href="https://blockchain.info/address/{{ transaction.address }}">{{ transaction.address }}</a></td>
+                    <td><a href="https://blockchain.info/tx/{{ transaction.tx_hash }}">{{ transaction.tx_hash |truncate(25, True) }}</a></td>
+                    <td>{{ transaction.num_outputs }}</td>
+                    <td data-value='{{ transaction.value }}'>{{ transaction.value_formatted }}</td>
+                  </tr>
+                {% else %}
+                <tr><td colspan="6" class="text-center">No previous transactions found.</td></tr>
+                {% endfor %}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="4"></td>
+                  <td>Total:</td>
+                  <td id="donated-total">{{ total_donated }}</td>
+                </tr>
+              </tfooter>
+            </table>
+          </div>
+        </div>
+      </div>
+{% endblock %}

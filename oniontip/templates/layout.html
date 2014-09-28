@@ -1,0 +1,52 @@
+<!doctype html>
+<html ng-app="OnionTip" lang="en"><head>
+    <meta charset="utf-8">
+    <!-- This sets the relative base_url for the app, which
+         is necessary if its not running from the root.
+         Flask replaces this %script_root% piece with the
+         right path-->
+    <base href="{{ script_root }}/">
+    <title>OnionTip</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Donate to Tor relay volunteers">
+    <meta name="author" content="Donncha O'Cearbhaill">
+
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/lib/select2/select2.css" rel="stylesheet">
+    <link href="/static/lib/angular-ui/angular-ui.min.css" rel="stylesheet">
+    <link href="/static/css/style.css" rel="stylesheet">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    </head><body>
+    <div ng-controller="OnionTipCtrl">
+    <div class="container">
+      <h1 id="page-title" class="text-center"><a href="/">OnionTip</a></h1>
+      <p class="lead text-center">Donate to volunteers who are running Tor relays which support a powerful tool that helps you stay anonymous online. You can also support the network by running a relay as part of <a href="https://www.eff.org/torchallenge/">EFF's Tor Challenge.</a></p>
+      {% block body %}{% endblock %}
+    </div>
+    {% block afterbody %}{% endblock %}
+  </div>
+
+  <div class="footer">
+    <div class="container text-center">
+      <p class="text-muted">
+        <ul class="list-inline">
+          <li><a href="https://github.com/DonnchaC/oniontip">Source Code</a></li>
+          <li>Last Refreshed: <strong id="last_refreshed">{{ last_refreshed }}</strong></li>
+          <li>Total Donated: <strong id="total-donated">{{ total_donated }}</strong></li>
+          <li>Tor code based heavily on <a href="https://compass.torproject.org/">Compass</a></li>
+          <li><a href="mailto:donncha{-at -}donncha.is">Contact</a></li>
+          <li>Built at the <a href="http://www.meetup.com/Bitcoin-Dublin/events/188685952/">Dublin Bitcoin Hackathon</a></li>
+        </ul>
+      </p>
+    </div>
+  </div>
+  <!-- /container -->
+  </div>
+
+  {% block scripts %}{% endblock %}
+  </body>
+</html>

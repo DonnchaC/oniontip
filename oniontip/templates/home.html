@@ -1,0 +1,191 @@
+{% extends "layout.html" %}
+{% block body %}
+{% raw %}
+      <div class="panel panel-default">
+        <div class="panel-body"> 
+          <form class="form-inline text-center" id="form">
+            <fieldset>
+              <label class="sr-only">Filters by: </label>
+              <div class="form-group">
+                <label class="sr-only" for="cc">Donate to relays from selected countries</label>
+                 <select style="width:210px" class="input-large" id="country" name="country" ng-model="query.country" ui-select2="" multiple="" data-placeholder="Donate to relays from..">
+                   <option ng-repeat="country in cc_data" value="{{country.id}}">{{country.text}}</option>
+                </select>
+              </div>
+              <div id="flag-options" class="form-group">
+                <label id="donate-checkbox-label" class="checkbox-inline">Donate to:</label>
+                <label class="checkbox-inline"><input id="guards_only" value="True" name="guards_only" ng-model="query.guards_only" type="checkbox">Guards Only</label>
+                <label class="checkbox-inline"><input id="exits_only" value="True" name="exits_only" ng-model="query.exits_only" type="checkbox">Exits Only</label>
+              </div>
+              <div class="form-group">
+                <label class="control-label sr-only" for="top">Limit Results</label>
+                <input class="form-control" id="top" name="top" placeholder="Limit Top: All" value="-1" ng-model="query.top" type="number">
+              </div>
+              <!--<div id="torproj-donate" class="form-group">
+                <label class="control-label sr-only" for="top">Donate % to Tor Project</label>
+                <div class="input-group">
+                  <input class="form-control" id="torproj" name="torproj" placeholder="25% to Tor Project" value="25" ng-model="query.torproj" type="number">
+                  <span class="input-group-addon">%</span>
+                </div>
+              </div>
+              <div id="exit-bonus" class="form-group">
+                <label class="control-label sr-only" for="top">Donate greater share to exit nodes</label>
+                <div class="input-group">
+                  <input class="form-control" id="exitbonus" name="exitbonus" placeholder="Exit Share: 1.5" value="1.5" ng-model="query.exitbonus" type="number">
+                  <span class="input-group-addon">x</span>
+                </div>
+              </div>-->
+              <button id="inline-option-btn" class="btn btn-primary" ng-click="request()">Update</button>
+            </fieldset>
+          </form>
+        </div>
+      </div>
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h2 class="panel-title">
+            <a class="collapsed" data-toggle="collapse" href="#adding-relay">How do I get my Tor relay listed?</a>
+          </h2>
+        </div>
+        <div id="adding-relay" class="panel-collapse collapse">
+          <div class="panel-body text-center">
+            <div class="row"><p class="col-md-10 col-md-offset-1">OnionTip runs in an open manner and retrieves all its data from the network consensus data published in the Tor network. To get your running relay included, it must have a valid bitcoin address listed in its contact information. The contact information is listed in the Tor config file which will typically be at <code>/etc/tor/torrc</code> on GNU/Linux systems. Your ContactInfo line should include a bitcoin address as in the following example.</p></div>
+            <div class="row">
+              <pre class="col-md-10 col-md-offset-1">ContactInfo admin@oniontip.com - 1MiJ46CgV5pJzJy3aHvnwCvvpSN45q3Xva</pre>
+            </div>
+            <div class="row"><p class="col-md-10 col-md-offset-1">Once you have made the required modification you will need to reload or restart your relay (<code>service tor reload</code>). After a couple of hours you should see it included in the list below.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h2 class="panel-title">
+            <a class="collapsed" data-toggle="collapse" href="#routerlisting">Where will your money go?</a>
+          </h2>
+        </div>
+        <div id="routerlisting" class="panel-collapse collapse">
+          <div class="panel-body text-center">
+            <div class="row"><p class="col-md-10 col-md-offset-1">Using the options above you can filter the set of relays that you would like your donation to be sent too. Your donation will then be divided among the relays listed below according to their <i>Donation Share</i>. The donation share is proportional to each relay's bandwidth contribution to the Tor network. If the share of your donation to an individual relay is too small it will be redistributed to other relays.</p>
+            <p class="col-md-10 col-md-offset-1">All <a title="View previous transactions" href="/transactions">previous transactions</a> on OnionTip are published publicly to ensure honesty.</p></div>
+            <form class="text-center" id="donate-form">
+              <button type="button" id="donate-btn-top" class="btn btn-primary btn-l" ng-click="donate()">Donate now to the listed relays!</button>
+            </form>
+          <div class="relaylisting" ng-show="state == 'loading'">
+            <div class="loading"><img src="static/img/loader.gif"></div>
+          </div>
+          <div class="relaylisting" ng-show="state == 'result_empty'">
+              <p><strong>No results found</strong></p>
+          </div>
+          <div id="result_table" class="relaylisting table-responsive" ng-show="state == 'loaded' || state == 'sorting'">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th sortable="ajax_sort" ui-jq="tooltip" sort_by="cw" invert="true" class="spinner-small" icon="static/img/ajax-loader.gif" title="The percentage share this relay will receive of your donation">
+                    Donation Share
+                  </th>
+                  <th sortable="ajax_sort" ui-jq="tooltip" sort_by="cw" invert="true" class="spinner-small" icon="static/img/ajax-loader.gif" title="Relative bandwidth weight assigned to this relay by the directory authorities">
+                    Consensus Weights
+                  </th>
+                  <th sortable="ajax_sort" ui-jq="tooltip" sort_by="p_guard" invert="true" icon="static/img/ajax-loader.gif" class="spinner-small" title=" Probability of this relay to be selected for the guard position">Guard Probability</th>
+                  <th sortable="ajax_sort" ui-jq="tooltip" sort_by="p_exit" invert="true" icon="static/img/ajax-loader.gif" class="spinner-small" title="Probability of this relay to be selected for the exit position"> Exit Probability</th>
+                  <th sortable="ajax_sort" sort_by="nick" invert="false" icon="static/img/ajax-loader.gif" class="spinner-small">Nickname</th>
+                  <th sortable="ajax_sort" sort_by="fp" invert="false" icon="static/img/ajax-loader.gif" class="spinner-small">Fingerprint</th>
+                  <th sortable="ajax_sort" sort_by="exit" invert="false" icon="static/img/ajax-loader.gif" class="spinner-small">Exit</th>
+                  <th sortable="ajax_sort" sort_by="guard" invert="false" icon="static/img/ajax-loader.gif" class="spinner-small">Guard</th>
+                  <th sortable="ajax_sort" sort_by="cc" invert="false" icon="static/img/ajax-loader.gif" class="spinner-small">Country</th>
+                  <th sortable="ajax_sort" ui-jq="tooltip" sort_by="bitcoin_address" invert="false" icon="static/img/ajax-loader.gif" class="spinner-small" title="Bitcoin address retrieved from the ContactInfo or X-bitcoin field of the relay descriptor">Bitcoin Address</th>
+                </tr>
+              </thead>
+              <tfoot>
+                <tr ng-show="data.excluded">
+                  <td> {{ data.excluded.index }} </td>
+                  <td>-</td>
+                  <td>{{ data.excluded.cw | number:4 }}%</td>
+                  <td>{{ data.excluded.p_guard | number:4 }}%</td>
+                  <td>{{ data.excluded.p_exit | number:4 }}%</td>
+                  <td colspan="2" id="extra_table_title">{{ data.excluded.nick }}</td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                </tr>
+                <tr ng-show="data.total">
+                  <td> {{ data.total.index }} </td>
+                  <td> {{ data.total.donation_share | number:2 }}%</td>
+                  <td> {{ data.total.cw | number:4 }}%</td>
+                  <td>{{ data.total.p_guard | number:4 }}%</td>
+                  <td>{{ data.total.p_exit | number:4 }}%</td>
+                  <td colspan="2" id="extra_table_title">{{ data.total.nick }}</td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </tfoot>
+              <tbody>
+                <tr ng-repeat="relay in data.results ">
+                  <td> {{ relay.index }} </td>
+                  <td> {{ relay.donation_share | number:2 }}%</td>
+                  <td> {{ relay.cw | number:4 }}%</td>
+                  <td>{{ relay.p_guard | number:4 }}%</td>
+                  <td>{{ relay.p_exit | number:4 }}%</td>
+                  <td>{{ relay.nick }}</td>
+                  <td>
+                    <span ng-show="relay.link">
+                      <a href="https://atlas.torproject.org/#details/{{relay.fp}}">{{relay.fp | truncate:8:30}}</a>
+                   </span>
+                   <span ng-show="!relay.link">{{relay.fp | truncate:8:30}}</span>
+                  </td>
+                  <td><span ng-show="relay.exit" class="glyphicon glyphicon-ok"></span><span ng-show="!relay.exit">-</span></td>
+                  <td><span ng-show="relay.guard"  class="glyphicon glyphicon-ok"></span><span ng-show="!relay.guard">-</span></td>
+                  <td><img src="static/img/cc/{{ relay.cc }}.png" title="{{ relay.cc }}" /></td>
+                  <td><span><a target="_blank" href="https://blockchain.info/address/{{ relay.bitcoin_address }}">{{ relay.bitcoin_address }}</a></span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+{% endraw %}
+{% endblock %}
+{% block afterbody %}
+{% raw %}
+    <div id="paymentProcess">
+      <div class="modal fade text-center" id="paymentModal" tabindex="-1" role="dialog" aria-labelledby="paymentModal" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title">Make your Donation Now</h4>
+            </div>
+            <div class="modal-body">
+              <div id="payment_errors" class="fade in" style="display:none"></div>
+              <div class="payment-info">
+                <a class="small" href="bitcoin:{{ payment_address }}"><strong>{{payment_address}}</strong></a><br />
+                <a href="bitcoin:{{ payment_address }}"><img src="qr/{{ payment_address }}" alt="Pay to {{ payment_address }}" /></a>
+              </div>
+              <p><small>This is a single use Bitcoin address. Please only send one transaction. There will be a transaction fee of at least <code>0.1</code> <abbr title="millibitcoin">mBTC</abbr> to forward this transaction. Any outputs less than the <abbr title="5460 satoshis">dust limit</abbr> will be discarded. You are tipping up to <code>{{ num_unique_addresses }}</code> unique addresses. </small></p>
+              <button id="checktx-btn" ng-click="checktx(payment_address)" type="button" class="btn btn-info">Check for Transaction</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <form class="text-center" id="donate-form">
+            <button type="button" id="donate-btn" class="btn btn-primary btn-xl" ng-click="donate()">Donate now!</button>
+      </form>
+    </div>
+{% endraw %}
+{% endblock %}
+{% block scripts %}
+  <script src="/static/js/jquery-1.8.0.min.js"></script>
+  <script src="/static/js/bootstrap.min.js"></script>
+  <script src="/static/js/bootstrap-tooltip.js"></script>
+  <script src="/static/lib/select2/select2.min.js" type="text/javascript"></script>
+  <script src="/static/js/angular/angular.min.js"> </script>
+  <script src="/static/lib/angular-ui/angular-ui.min.js"></script>
+  <script src="/static/js/directives.js"></script>
+  <script src="/static/js/filters.js"></script>
+  <script src="/static/js/angularize.js"></script>
+{% endblock %}

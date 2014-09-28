@@ -170,7 +170,7 @@ def check_and_send(address):
                 out['value'] += int(math.floor(new_ratio * discarded_value))
 
         if not outs:
-            app.logger.error('Could not find addresses suitable to spend to from {}. Outputs may be too small.'.format(address))
+            app.logger.warn('Could not find addresses suitable to spend to from {}. Outputs may be too small.'.format(address))
             return {'status': 'fail',
                     'data': {
                         'message': 'There are no addresses to where the donation can be successfully forwarded. The value of the donation may be too low, try sending a little more.',

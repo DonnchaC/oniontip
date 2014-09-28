@@ -156,6 +156,15 @@ def calculate_fee(num_inputs, num_outputs, kb_tx_fee):
     estimate_size = float((148 * num_inputs) + (34 * num_outputs) + 10)
     return int(math.ceil(estimate_size / 1000) * kb_tx_fee)
 
+def format_bitcoin_value(value):
+    if value:
+        if int(value) >= 100000000: # More than 1 BTC
+            return "%.2f BTC" % (float(value) / 100000000)
+        else:
+            return "%.2f mBTC" % (float(value) / 100000)
+    else:
+        return '0 mBTC'
+
 class BaseFilter(object):
     def accept(self, relay):
         raise NotImplementedError("This isn't implemented by the subclass")

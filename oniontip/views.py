@@ -20,8 +20,25 @@ MIN_OUTPUT = 5460       # Bitcoin dust limit
 
 @app.route('/')
 def index():
-    # Add total donated to the template
-    return app.open_resource("templates/index.html").read().replace('<!--%script_root%-->',request.script_root).replace('<!--total_donated-->', total_donated())
+    return render_template('home.html', script_root=request.script_root, total_donated=total_donated())
+
+@app.route('/transactions')
+def previous_transactions():
+    transactions = []
+    payment_addresses = ForwardAddress.query.all()
+    for payment in payment_addresses:
+        if payment.spent:
+            transactions.append({
+                'deterministic_index': payment.id,
+                'time': payment.created.strftime("%Y-%m-%d %H:%M:%S"),
+                'address': payment.address,
+                'tx_hash': payment.spending_tx,
+                'num_outputs': len(payment.outputs),
+                'value': payment.donation_amount,
+                'value_formatted': util.format_bitcoin_value(payment.donation_amount)
+            })
+    return render_template('transactions.html', script_root=request.script_root, total_donated=total_donated(), transactions=transactions)
+
 
 @app.route('/result.json', methods=['GET'])
 def json_result():
@@ -32,7 +49,7 @@ def json_result():
 @app.route('/payment.json', methods=['GET'])
 def payment_info():
     """
-    Retrieve and store the selected router's bitcoin address with a new bitcoin keypair
+    Retrieve and store the selected set of relays's bitcoin addresses with a new bitcoin keypair
     """
     outputs = {}
     options = util.Opt(dict(request.args.items()))
@@ -62,7 +79,8 @@ def payment_info():
                 'status': 'success',
                 'data': {
                     'message': 'A new bitcoin address forwarding to the {} selected relays has been created'.format(len(outputs)), 
-                    'bitcoin_address': donation_request.address
+                    'bitcoin_address': donation_request.address,
+                    'num_unique_addresses': len(outputs)
             }}), mimetype='application/json'), 201
 
     else:
@@ -91,7 +109,7 @@ def get_qrcode(address):
 
 def check_and_send(address):
     '''
-    Check generated addresses and forwarded any unspent outputs
+    Check generated address and forwarded any unspent outputs
 
     Check_and_send does the heavy lifting for creating the bitcoin transactions for
     users on the web interface and for requests from the automated cronjob on the CLI
@@ -168,8 +186,10 @@ def check_and_send(address):
             push_result = bitcoin.pushtx(tx)
             tx_total = sum(out.get('value') for out in outs)
 
-            # This address has been successfully spent from and doesn't need to be checked again.
+            # This address has been successfully spent from, update tx info and don't check it again.
             address_info.spent = True
+            address_info.spending_tx = tx_hash
+            address_info.donation_amount = tx_total
 
             # Keep a total of all bitcoins tipped
             total_donated = DataStore.query.filter_by(key='total_donated').first()
@@ -207,7 +227,7 @@ def check_and_send(address):
                     'code': 404
                     }}
 
-def find_unsent_payments():
+def find_unsent_payments(check_all=False):
     """
     Forward unspent transactions sent to oniontip addresses
 
@@ -216,10 +236,10 @@ def find_unsent_payments():
     may not have forwarded on the web UI. 
     """
 
-    unspent_addresses = ForwardAddress.query.filter_by(spent=False, expired=False).all()
+    unspent_addresses = ForwardAddress.query.filter_by(spent=False).all()
     successful_txs = []
     for unspent in unspent_addresses:
-        if (datetime.datetime.utcnow() - unspent.created) < datetime.timedelta(hours=2):
+        if ((datetime.datetime.utcnow() - unspent.created) < datetime.timedelta(hours=3)) or check_all:
             response = check_and_send(unspent.address)
             if response.get('status') == 'success':
                 app.logger.info('Transaction successfully sent from CLI from {} in tx {}.'.format(unspent.address, tx_hash))
@@ -228,16 +248,11 @@ def find_unsent_payments():
                     'tx_hash': response['data']['tx_hash']}
                     )
             elif response.get('status') == 'fail':
-                print 'CLI Fail: '+response['data']['message']
+                print 'CLI Fail: {}'.format(response['data']['message'])
             elif response.get('status') == 'error':
-                print 'CLI Errror: '+response['message']
+                app.logger.error('CLI Errror: {}'.format(response['message']))
             else:
-                print 'An unknown error occured in the application.'
-        else:
-            # These addresses are older than two hours and should be marked expired
-            unspent.expired = True
-            db.session.commit()
-
+                app.logger.error('An unknown error occured in the application.')
     return successful_txs
 
 @app.route('/forward/<address>')
@@ -260,10 +275,4 @@ def forward_from_address(address):
 
 def total_donated():
     total_donated = DataStore.query.filter_by(key='total_donated').first()
-    if total_donated:
-        if int(total_donated.value) >= 100000000: # More than 1 BTC
-            return "%.2f BTC" % (float(total_donated.value) / 100000000)
-        else:
-            return "%.2f mBTC" % (float(total_donated.value) / 100000)
-    else:
-        return '0 mBTC'
+    return util.format_bitcoin_value(total_donated.value)

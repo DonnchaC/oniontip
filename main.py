@@ -12,6 +12,8 @@ def create_option_parser():
                       help="download details.json from Onionoo service")
     parser.add_option("-c", "--check", action="store_true",
                       help="check bitcoin addresses for unspent outputs")
+    parser.add_option("-a", "--check-all", action="store_true", default=False,
+                      help="check all bitcoin addresses for unspent outputs including old addresses")
     return parser
 
 if '__main__' == __name__:
@@ -24,9 +26,9 @@ if '__main__' == __name__:
         print "Downloaded details.json.  Re-run without --download option."
         exit()
 
-    elif options.check:
+    elif options.check or options.check_all:
         # Check recent bitcoin addresses for unspent outputs
-        successful_transactions = oniontip.views.find_unsent_payments()
+        successful_transactions = oniontip.views.find_unsent_payments(check_all=options.check_all)
         if successful_transactions:
             print '{} transactions were successfully sent:'.format(len(successful_transactions))
             for tx in successful_transactions:

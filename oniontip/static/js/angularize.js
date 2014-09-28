@@ -104,6 +104,7 @@ oniontipModule.controller('OnionTipCtrl',function OnionTipCtrl($scope,$http,$loc
       .success(function(response) {
         if (response.data.bitcoin_address) {
           $scope.payment_address = response.data.bitcoin_address
+          $scope.num_unique_addresses = response.data.num_unique_addresses
           $scope.state = "loaded"
           if (success_pay != null){
             success_pay()

@@ -13,7 +13,8 @@ class ForwardAddress(db.Model):
     outputs = db.Column(db.PickleType, nullable=False)
     created = db.Column(db.DateTime)
     spent = db.Column(db.Boolean, default=False)
-    expired = db.Column(db.Boolean, default=False)
+    spending_tx = db.Column(db.String(80))
+    donation_amount = db.Column(db.Integer)
 
     def __init__(self, private_key=None, outputs=None, previous_n=0):
         if not private_key:

@@ -183,7 +183,7 @@ def check_and_send(address):
         tx_hash = bitcoin.transaction.txhash(tx)
 
         try:
-            push_result = bitcoin.pushtx(tx)
+            push_result = bitcoin.blockr_pushtx(tx)
             tx_total = sum(out.get('value') for out in outs)
 
             # This address has been successfully spent from, update tx info and don't check it again.

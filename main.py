@@ -42,7 +42,7 @@ if '__main__' == __name__:
         sys.exit('Did not find details.json.  Re-run with --download.')
 
     if not app.config.get('BITCOIN_KEY_SEED'):
-        sys.exit('You must set and electrum style private seed in the BITCOIN_KEY_SEED enviromental variable')
+        sys.exit('You must set an electrum style private seed in the BITCOIN_KEY_SEED enviromental variable')
 
     db.create_all()
     app.run()

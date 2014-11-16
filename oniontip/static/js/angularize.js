@@ -18,6 +18,7 @@ oniontipModule.controller('OnionTipCtrl',function OnionTipCtrl($scope,$http,$loc
     country: null
   }
   $scope.payment_address = '';
+  $scope.tx_value = '';
   $scope.last_refreshed = '-'
 
   /** Watch the location bar to allow us to load saved searches **/
@@ -32,9 +33,9 @@ oniontipModule.controller('OnionTipCtrl',function OnionTipCtrl($scope,$http,$loc
     $(elem).show().html('<div class="alert alert-dismissible alert-'+type+'"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><small>'+message+'</small></div>');
 
     if (timeout || timeout === 0) {
-      setTimeout(function() { 
+      setTimeout(function() {
         $(elem).alert('close');
-      }, timeout);    
+      }, timeout);
     }
   };
 
@@ -114,7 +115,7 @@ oniontipModule.controller('OnionTipCtrl',function OnionTipCtrl($scope,$http,$loc
         else {
           $scope.state = "result_empty"
         }
-        $("#payment_errors .alert").remove(); // Remove previously shown alerts 
+        $("#payment_errors .alert").remove(); // Remove previously shown alerts
         $("#paymentModal").modal("show");
       })
   };
@@ -125,7 +126,22 @@ oniontipModule.controller('OnionTipCtrl',function OnionTipCtrl($scope,$http,$loc
     $http.get('forward/'+bitcoin_address)
       .success(function(response) {
         $scope.state = 'success'
+        $('.postdonate').append(
+          $('<a/>')
+            .attr("href", "https://twitter.com/share")
+            .attr("data-text", "I've donated " + response.data.tx_value +" to Tor relay operators. Help support the Tor network and a private internet on #OnionTip")
+            .attr("data-url", "https://oniontip.com")
+            .attr("data-related", "TorProject,EFF")
+            .attr("data-dnt", "true")
+            .attr("data-count", "none")
+            .attr("data-size", "large")
+            .addClass("twitter-hashtag-button")
+            .append("Tweet your support!")
+        );
+        twttr.widgets.load();
         bootstrap_alert('#payment_errors', 'success', response.data.message);
+        $(".payment-info, .paymentadvice, #checktx-btn").hide();
+        $(".postdonate").show();
       }).
       error(function(response, status) {
         $scope.state = 'warn'
@@ -151,7 +167,7 @@ oniontipModule.controller('OnionTipCtrl',function OnionTipCtrl($scope,$http,$loc
     allowClear: true,
     width: "element",
   }
-  
+
 // Load and display on relays on first load
 $scope.request();
 })

@@ -2,7 +2,7 @@
 {% block body %}
 {% raw %}
       <div class="panel panel-default">
-        <div class="panel-body"> 
+        <div class="panel-body">
           <form class="form-inline text-center" id="form">
             <fieldset>
               <label class="sr-only">Filters by: </label>
@@ -165,7 +165,10 @@
                 <a class="small" href="bitcoin:{{ payment_address }}"><strong>{{payment_address}}</strong></a><br />
                 <a href="bitcoin:{{ payment_address }}"><img src="qr/{{ payment_address }}" alt="Pay to {{ payment_address }}" /></a>
               </div>
-              <p><small>This is a single use Bitcoin address. Please only send one transaction. There will be a transaction fee of at least <code>0.1</code> <abbr title="millibitcoin">mBTC</abbr> to forward this transaction. Any outputs less than the <abbr title="5460 satoshis">dust limit</abbr> will be discarded. You are tipping up to <code>{{ num_unique_addresses }}</code> unique addresses. </small></p>
+              <div class="postdonate" style="display:none">
+                <p><strong>Great job!</strong> Now let the world know about your donation and help encourage others to support the Tor network.</p>
+              </div>
+              <p class="paymentadvice"><small>This is a single use Bitcoin address. Please only send one transaction. There will be a transaction fee of at least <code>0.1</code> <abbr title="millibitcoin">mBTC</abbr> to forward this transaction. Any outputs less than the <abbr title="5460 satoshis">dust limit</abbr> will be discarded. You are tipping up to <code>{{ num_unique_addresses }}</code> unique addresses. </small></p>
               <button id="checktx-btn" ng-click="checktx(payment_address)" type="button" class="btn btn-info">Check for Transaction</button>
             </div>
           </div>
@@ -179,6 +182,9 @@
 {% endraw %}
 {% endblock %}
 {% block scripts %}
+  <script type="text/javascript">
+  window.twttr=(function(d,s,id){var t,js,fjs=d.getElementsByTagName(s)[0];if(d.getElementById(id)){return}js=d.createElement(s);js.id=id;js.src="https://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);return window.twttr||(t={_e:[],ready:function(f){t._e.push(f)}})}(document,"script","twitter-wjs"));
+  </script>
   <script src="/static/js/jquery-1.8.0.min.js"></script>
   <script src="/static/js/bootstrap.min.js"></script>
   <script src="/static/js/bootstrap-tooltip.js"></script>

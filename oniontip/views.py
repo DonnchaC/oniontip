@@ -280,4 +280,4 @@ def total_donated():
     try:
         return util.format_bitcoin_value(total_donated.value)
     except AttributeError:
-        return -1
+        return 0

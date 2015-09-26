@@ -3,6 +3,8 @@ import shlex
 import math
 import re
 import bitcoinaddress
+import tempfile
+import shutil
 
 import json
 import operator
@@ -457,6 +459,12 @@ def check_and_update_bitcoin_fields(relay_details):
     # to determine donation share
     data['relays'][:] = [relay for relay in data['relays'] if (relay.get('bitcoin_address'))]
 
-    # Write parsed list to file
-    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'details.json'), 'w') as details_file:
-        json.dump(data, details_file)
+    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        temp_file_name = temp_file.name
+        json.dump(data, temp_file)
+
+    # Atomically move the new json file to avoid errors where Oniontip
+    # tries to parse a partially written json file.
+    details_file_path = os.path.join(os.path.dirname(
+        os.path.abspath(__file__)), 'details.json')
+    shutil.move(temp_file_name, details_file_path)

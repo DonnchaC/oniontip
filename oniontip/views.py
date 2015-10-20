@@ -277,4 +277,7 @@ def forward_from_address(address):
 
 def total_donated():
     total_donated = DataStore.query.filter_by(key='total_donated').first()
-    return util.format_bitcoin_value(total_donated.value)
+    if total_donated is not None:
+        return util.format_bitcoin_value(total_donated.value)
+    else:
+        return util.format_bitcoin_value(0)

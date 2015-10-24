@@ -13,7 +13,7 @@ import os
 import urllib
 import itertools
 from stem.descriptor.remote import DescriptorDownloader
-from oniontip import db
+from oniontip import db, cache
 
 
 FAST_EXIT_BANDWIDTH_RATE = 95 * 125 * 1024     # 95 Mbit/s
@@ -90,7 +90,7 @@ class Opt(object):
       return repr(self)
 
     def __repr__(self):
-      return str(self.__dict__)
+      return json.dumps(self.__dict__, sort_keys=True)
 
     def __init__(self,request):
       for key in Opt.option_details:
@@ -409,11 +409,13 @@ class RelayStats(object):
           result['p_guard'] = group_weights['guard_probability'] * 100.0
           result['p_middle'] = group_weights['middle_probability'] * 100.0
           result['p_exit'] = group_weights['exit_probability'] * 100.0
-          
+
         results.append(result)
 
       return results
 
+
+@cache.memoize(timeout=300)
 def determine_relays(options):
     stats = RelayStats(options)
     results = stats.select_relays(stats.relays, options)

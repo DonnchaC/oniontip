@@ -1,11 +1,13 @@
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
+from flask.ext.cache import Cache
 
 app = Flask(__name__)
 app.config.from_object('oniontip.config')
 app.config.from_envvar('ONIONTIP_SETTINGS', silent=True)
 
 db = SQLAlchemy(app)
+cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 
 if not app.debug:
     import logging

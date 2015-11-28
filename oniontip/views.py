@@ -14,6 +14,7 @@ import StringIO
 import math
 import bitcoin # pybitcointools
 import datetime
+from werkzeug.contrib.atom import AtomFeed
 
 TX_FEE_PER_KB = 10000   # 
 MIN_OUTPUT = 5460       # Bitcoin dust limit
@@ -22,22 +23,51 @@ MIN_OUTPUT = 5460       # Bitcoin dust limit
 def index():
     return render_template('home.html', script_root=request.script_root, total_donated=total_donated())
 
+def format_transaction(payment):
+    transaction = {
+        'deterministic_index': payment.id,
+        'time': payment.created.strftime("%Y-%m-%d %H:%M:%S"),
+        'address': payment.address,
+        'tx_hash': payment.spending_tx,
+        'num_outputs': len(payment.outputs),
+        'value': payment.donation_amount,
+        'value_formatted': util.format_bitcoin_value(payment.donation_amount)
+        }
+    return transaction
+
+
 @app.route('/transactions')
 def previous_transactions():
     transactions = []
     payment_addresses = ForwardAddress.query.all()
     for payment in payment_addresses:
         if payment.spent:
-            transactions.append({
-                'deterministic_index': payment.id,
-                'time': payment.created.strftime("%Y-%m-%d %H:%M:%S"),
-                'address': payment.address,
-                'tx_hash': payment.spending_tx,
-                'num_outputs': len(payment.outputs),
-                'value': payment.donation_amount,
-                'value_formatted': util.format_bitcoin_value(payment.donation_amount)
-            })
+            transactions.append(format_transaction(payment))
     return render_template('transactions.html', script_root=request.script_root, total_donated=total_donated(), transactions=transactions)
+
+
+@app.route('/transactions/feed')
+def previous_transactions_feed():
+    """Provide an Atom feed listing recent transactions."""
+    feed = AtomFeed('OnionTip - Recent Transactions',
+                    feed_url=request.url,
+                    url=request.url_root)
+    payment_addresses = ForwardAddress.query \
+        .order_by(ForwardAddress.created.desc()) \
+        .limit(50).all()
+    for payment in payment_addresses:
+        if payment.spent:
+            item_title = 'New transaction %s' % payment.spending_tx
+            item_content = render_template('transaction_feed.html',
+                                           script_root=request.script_root,
+                                           transaction=format_transaction(payment))
+            feed.add(item_title,
+                     item_content,
+                     id=payment.id,
+                     content_type='html',
+                     published=payment.created,
+                     updated=payment.created)
+    return feed.get_response()
 
 
 @app.route('/result.json', methods=['GET'])

@@ -13,7 +13,7 @@ import os
 import urllib
 import itertools
 from stem.descriptor.remote import DescriptorDownloader
-from oniontip import db, cache
+from oniontip import db, cache, app
 
 
 FAST_EXIT_BANDWIDTH_RATE = 95 * 125 * 1024     # 95 Mbit/s
@@ -224,9 +224,11 @@ class RelayStats(object):
 
     @property
     def data(self):
-      if not self._data:
-        self._data = json.load(file(os.path.join(os.path.dirname(os.path.abspath(__file__)), self._datafile_name)))
-      return self._data
+      try:
+        return app.relay_data
+      except AttributeError:
+        app.relay_data = json.load(file(os.path.join(os.path.dirname(os.path.abspath(__file__)), self._datafile_name)))
+        return app.relay_data
 
     @property
     def relays(self):
@@ -470,3 +472,6 @@ def check_and_update_bitcoin_fields(relay_details):
     details_file_path = os.path.join(os.path.dirname(
         os.path.abspath(__file__)), 'details.json')
     shutil.move(temp_file_name, details_file_path)
+
+    # Remove the currently loaded relay object as we have new data
+    del app.relay_data

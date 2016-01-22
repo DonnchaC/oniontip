@@ -101,7 +101,7 @@ class Opt(object):
 
 class Result():
     WEIGHT_FIELDS = {
-    'consensus_weight_fraction': 'cw', 
+    'consensus_weight_fraction': 'cw',
     'advertised_bandwidth_fraction': 'adv_bw',
     'guard_probability': 'p_guard',
     'middle_probability': 'p_middle',
@@ -273,10 +273,10 @@ class RelayStats(object):
       filtered), sort it and return the ones requested
       in the 'top' option.  Add index numbers to them as well.
 
-      Returns a hash with three values: 
+      Returns a hash with three values:
         *results*: A list of Result objects representing the selected
                    relays
-        *excluded*: A Result object representing the stats for the 
+        *excluded*: A Result object representing the stats for the
                     filtered out relays. May be None
         *total*: A Result object representing the stats for all of the
                  relays in this filterset.
@@ -289,7 +289,7 @@ class RelayStats(object):
       # We need a simple sorting key function
       def sort_fn(r):
         return getattr(r,options.sort)
-      
+
       relay_set.sort(key=sort_fn,reverse=options.sort_reverse)
 
       if options.top < 0:
@@ -351,7 +351,7 @@ class RelayStats(object):
               }
 
 
-    def select_relays(self, grouped_relays, options): 
+    def select_relays(self, grouped_relays, options):
       """
       Return a Pythonic representation of the relays result set. Return it as a set of Result objects.
       """
@@ -417,7 +417,7 @@ class RelayStats(object):
       return results
 
 
-@cache.memoize(timeout=300)
+#@cache.memoize(timeout=300)
 def determine_relays(options):
     stats = RelayStats(options)
     results = stats.select_relays(stats.relays, options)
@@ -474,4 +474,7 @@ def check_and_update_bitcoin_fields(relay_details):
     shutil.move(temp_file_name, details_file_path)
 
     # Remove the currently loaded relay object as we have new data
-    del app.relay_data
+    try:
+        del app.relay_data
+    except AttributeError:
+        pass

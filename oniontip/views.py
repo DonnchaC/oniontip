@@ -53,20 +53,19 @@ def previous_transactions_feed():
                     feed_url=request.url,
                     url=request.url_root)
     payment_addresses = ForwardAddress.query \
-        .order_by(ForwardAddress.created.desc()) \
+        .filter_by(spent=1).order_by(ForwardAddress.created.desc()) \
         .limit(50).all()
     for payment in payment_addresses:
-        if payment.spent:
-            item_title = 'New transaction %s' % payment.spending_tx
-            item_content = render_template('transaction_feed.html',
-                                           script_root=request.script_root,
-                                           transaction=format_transaction(payment))
-            feed.add(item_title,
-                     item_content,
-                     id=payment.id,
-                     content_type='html',
-                     published=payment.created,
-                     updated=payment.created)
+        item_title = 'New transaction %s' % payment.spending_tx
+        item_content = render_template('transaction_feed.html',
+                                       script_root=request.script_root,
+                                       transaction=format_transaction(payment))
+        feed.add(item_title,
+                 item_content,
+                 id=payment.id,
+                 content_type='html',
+                 published=payment.created,
+                 updated=payment.created)
     return feed.get_response()
 
 

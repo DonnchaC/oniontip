@@ -38,11 +38,8 @@ def format_transaction(payment):
 
 @app.route('/transactions')
 def previous_transactions():
-    transactions = []
-    payment_addresses = ForwardAddress.query.all()
-    for payment in payment_addresses:
-        if payment.spent:
-            transactions.append(format_transaction(payment))
+    payment_addresses = ForwardAddress.query.filter_by(spent=1).all()
+    transactions = [format_transaction(payment) for payment in payment_addresses]
     return render_template('transactions.html', script_root=request.script_root, total_donated=total_donated(), transactions=transactions)
 
 

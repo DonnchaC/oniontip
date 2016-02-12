@@ -1,0 +1,24 @@
+<table>
+  <tbody>
+    <tr>
+      <th title="Time of Donation">Time</th>
+      <td>{{ transaction.time }}</td>
+    </tr>
+    <tr>
+      <th title="Address for Donation">Bitcoin Address</th>
+      <td><a href="https://blockchain.info/address/{{ transaction.address }}">{{ transaction.address }}</a></td>
+    </tr>
+    <tr>
+      <th title="Transaction Hash">Transaction Hash</th>
+      <td><a href="https://blockchain.info/tx/{{ transaction.tx_hash }}">{{ transaction.tx_hash }}</a></td>
+    </tr>
+    <tr>
+      <th title="Number of relays selected to receive a portion of the donation"># Relays</th>
+      <td>{{ transaction.num_outputs }}</td>
+    </tr>
+    <tr>
+      <th title="Total Value of the Donation">Donation Value</th>
+      <td data-value='{{ transaction.value }}'>{{ transaction.value_formatted }}</td>
+    </tr>
+  </tbody>
+</table>

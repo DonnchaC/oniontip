@@ -45,4 +45,4 @@ if '__main__' == __name__:
         sys.exit('You must set an electrum style private seed in the BITCOIN_KEY_SEED enviromental variable')
 
     db.create_all()
-    app.run()
+    app.run(host='0.0.0.0')

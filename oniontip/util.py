@@ -4,6 +4,7 @@ import math
 import re
 import bitcoinaddress
 import tempfile
+import time
 import shutil
 
 import json
@@ -216,19 +217,28 @@ class InverseFilter(BaseFilter):
 class RelayStats(object):
     def __init__(self, options, custom_datafile="details.json"):
         self._data = None
-        self._datafile_name = custom_datafile
+        self._datafile_name = os.path.join(os.path.dirname(os.path.abspath(__file__)), custom_datafile)
         self._filters = self._create_filters(options)
         self._get_group = self._get_group_function(options)
         self._relays = None
+        self._max_age_secs = 60 * 60   # 1 hour
         #slef._relays_published = None
 
     @property
     def data(self):
       try:
+        if time.time() - app.relay_data_mtime > self._max_age_secs:
+          if time.time() - app.relay_data_last_checked > self._max_age_secs / 2:
+              self._load_data()
         return app.relay_data
       except AttributeError:
-        app.relay_data = json.load(file(os.path.join(os.path.dirname(os.path.abspath(__file__)), self._datafile_name)))
+        self._load_data()
         return app.relay_data
+
+    def _load_data(self):
+      app.relay_data = json.load(file(self._datafile_name))
+      app.relay_data_mtime = (os.stat(self._datafile_name)).st_mtime
+      app.relay_data_last_checked = time.time()
 
     @property
     def relays(self):
@@ -472,9 +482,3 @@ def check_and_update_bitcoin_fields(relay_details):
     details_file_path = os.path.join(os.path.dirname(
         os.path.abspath(__file__)), 'details.json')
     shutil.move(temp_file_name, details_file_path)
-
-    # Remove the currently loaded relay object as we have new data
-    try:
-        del app.relay_data
-    except AttributeError:
-        pass

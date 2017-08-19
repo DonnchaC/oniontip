@@ -26,7 +26,7 @@ If you find any bugs or experience problems with or your transactions please sub
 
 ### License
 Licensed under MIT License
-(c) 2014 Donncha O'Cearbhaill
+(c) 2017 Donncha O'Cearbhaill
 
 This codebase is derived heavily from the Compass tool which allows the filtering and aggregation of data about Tor relays.
 (c) Sathyanarayanan Gunasekaran, The Tor Project
